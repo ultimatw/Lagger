@@ -1,0 +1,113 @@
+-- Fixed version – straight quotes only
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Chili Laser Gun Lagger",
+   LoadingTitle = "Chili Laser v19",
+   LoadingSubtitle = "by Secretjake – Laser Spam Crash",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "ChiliLaser",
+      FileName = "SABConfig"
+   },
+   KeySystem = false
+})
+
+local LaserTab = Window:CreateTab("Laser Gun", 4483362458)
+
+local SpamToggle = LaserTab:CreateToggle({
+   Name = "Laser Gun Spam Lagger",
+   CurrentValue = false,
+   Flag = "LaserSpam",
+   Callback = function(Value)
+      LaggerEnabled = Value
+      if Value then
+         Rayfield:Notify({
+            Title = "Lagger ON",
+            Content = "Laser spam started – servers crashing!",
+            Duration = 5
+         })
+      end
+   end,
+})
+
+local IntensitySlider = LaserTab:CreateSlider({
+   Name = "Spam Intensity",
+   Range = {5000, 20000},
+   Increment = 1000,
+   CurrentValue = 15000,
+   Flag = "Intensity",
+   Callback = function(Value)
+      SpamIntensity = Value
+   end,
+})
+
+local AntiLagToggle = LaserTab:CreateToggle({
+   Name = "Anti-Self-Lag (Keep ON)",
+   CurrentValue = true,
+   Flag = "AntiLag",
+   Callback = function(Value)
+      AntiLagEnabled = Value
+   end,
+})
+
+-- LASER GUN LOGIC
+local LaserGun = game.Players.LocalPlayer.Backpack:FindFirstChild("Laser Gun") or game.Players.LocalPlayer.Character:FindFirstChild("Laser Gun")
+if not LaserGun then
+   Rayfield:Notify({
+      Title = "Error",
+      Content = "Equip Laser Gun (750R) first!",
+      Duration = 10
+   })
+end
+
+local LaggerEnabled = false
+local SpamIntensity = 15000
+local AntiLagEnabled = true
+
+local Remotes = {}
+for _, v in pairs(game.ReplicatedStorage:GetDescendants()) do
+   if v:IsA("RemoteEvent") then table.insert(Remotes, v) end
+end
+
+spawn(function()
+   while true do
+      if AntiLagEnabled then
+         for _, obj in pairs(workspace:GetChildren()) do
+            if obj:IsA("Part") and (obj.Name:find("Laser") or obj.Name:find("Beam")) then
+               if (obj.Position - game.Players.LocalPlayer.Character.PrimaryPart.Position).Magnitude < 150 then
+                  obj:Destroy()
+               end
+            end
+         end
+      end
+      task.wait(0.3)
+   end
+end)
+
+local function laserSpam()
+   if LaggerEnabled and LaserGun then
+      LaserGun.Parent = game.Players.LocalPlayer.Character
+      for i = 1, SpamIntensity do
+         pcall(function() LaserGun:Activate() end)
+         for _, r in Remotes do
+            if r.Name:lower():find("fire") or r.Name:lower():find("laser") or r.Name:lower():find("shoot") then
+               pcall(function() r:FireServer() end)
+            end
+         end
+      end
+   end
+end
+
+spawn(function()
+   while task.wait(0.001) do
+      spawn(laserSpam)
+   end
+end)
+
+Rayfield:Notify({
+   Title = "Chili Laser Loaded!",
+   Content = "Equip Laser Gun → Toggle On → Servers crash 🔥",
+   Duration = 8,
+   Image = 4483362458
+})
